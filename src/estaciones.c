@@ -4,14 +4,23 @@ int
 main( int argc, char *argv[] ) {
     printf("Content-Type: text/html\n\n");
     struct Estacion stationArray[10];
-    leer_archivo(stationArray);
+    FILE* stream;
 
-    // char data[50];
-    char *data = getenv("QUERY_STRING");
+    // stream = fopen("../datos_meteorologicos.CSV", "r");
+    stream = fopen("datos_meteorologicos.CSV", "r");
+    if (stream == NULL) {
+      perror("Error opening CSV table");
+      exit(EXIT_FAILURE);
+  }
+
+    leer_archivo(stationArray, stream);
+
+    char data[50];
+    // char *data = getenv("QUERY_STRING");
     char query[50];
     char query_arg[50];
-    // strcpy(data, "q=diario_precip&a=30099");
-    // printf("DATA: '%s'\n", data);
+    strcpy(data, "q=descargar&a=30099");
+    printf("DATA: '%s'\n", data);
 
     if(parseString(data, "a=", "", query_arg) == -1){
         printf("Error parseString\n");
@@ -73,7 +82,7 @@ main( int argc, char *argv[] ) {
         print_resto_pagina(stationArray, query, query_arg, precipitaciones, 1, NULL, NULL);
     }
     else if(strcmp(query,"descargar") == 0){
-        printf("descargar, to do\n");
+        descargar_estacion(atoi(query_arg), stationArray, stream);
     }
 
     return 0; 
@@ -394,14 +403,7 @@ parseString(char cadena[], char before[], char after[], char token[]){
 }
 
 void
-leer_archivo(struct Estacion stationArray[10]){
-    FILE* stream = fopen("../datos_meteorologicos.CSV", "r");
-    // FILE* stream = fopen("datos_meteorologicos.CSV", "r");
-    if (stream == NULL) {
-      perror("Error opening CSV table");
-      exit(EXIT_FAILURE);
-  }
-
+leer_archivo(struct Estacion stationArray[10], FILE* stream){
   size_t characters = 0;
   size_t len = 0;
   char* line2 = NULL;
@@ -579,7 +581,7 @@ get_variable_offset(char variable[], int* indiceSensor){
         return (offsetof(struct dato_estacion, humedadHoja));
     }
     else{
-    	*indiceSensor = -1;
+      *indiceSensor = -1;
         return -1;
     }
 }
@@ -634,7 +636,7 @@ promediar(struct Estacion stationArray[], char variable[], float promedios[], in
         //     stationArray[j].nombre,suma);
         promedios[j] = suma;
     }
-    return 0;	
+    return 0; 
 }
 
 /**
@@ -655,8 +657,8 @@ check_estacion_existente(struct Estacion estaciones[], int *nro){
         if(estaciones[i].numero == *nro){
             *nro = i;
             return 1;
-        }		
-    }	
+        }   
+    } 
     return 0;
 }
 
@@ -672,20 +674,20 @@ check_estacion_existente(struct Estacion estaciones[], int *nro){
 */
 void 
 diarioPrecipitacion(struct Estacion estaciones[], int nro, float precipitaciones[], int index_dias[]){
-	if(check_estacion_existente(estaciones, &nro) == 0){
+  if(check_estacion_existente(estaciones, &nro) == 0){
         printf("Estacion inexistente\n");
-		return;
-	}
+    return;
+  }
 
     float precipAcumulada=0;
     int i, j;
     // printf("Precipitacion acumulada por dia.\n%d - Estacion %s:\n",
-    // 	estaciones[nro].numero, estaciones[nro].nombre);
+    //  estaciones[nro].numero, estaciones[nro].nombre);
     for (i = 0, j=0; i < estaciones[nro].cantElem; ++i)
     {
         if(i!=0 && (strcmp(estaciones[nro].dato[i].dia, estaciones[nro].dato[i-1].dia))){
             //termine de recorrer un dia. Sumo todo, muestro y reseteo contador
-            // printf("	%s: %.1f mm, %i\n", estaciones[nro].dato[i-1].dia, precipAcumulada, i-1);
+            // printf(" %s: %.1f mm, %i\n", estaciones[nro].dato[i-1].dia, precipAcumulada, i-1);
             precipitaciones[j] = precipAcumulada;
             index_dias[j] = i-1;
             j++;
@@ -693,7 +695,7 @@ diarioPrecipitacion(struct Estacion estaciones[], int nro, float precipitaciones
         }
         precipAcumulada+=estaciones[nro].dato[i].precip;
     }
-    // printf("	%s: %.1f mm, %i\n", estaciones[nro].dato[i-1].dia, precipAcumulada, i-1);
+    // printf(" %s: %.1f mm, %i\n", estaciones[nro].dato[i-1].dia, precipAcumulada, i-1);
     precipitaciones[j] = precipAcumulada;
     precipitaciones[j+1] = -1; //indica fin de arreglo
     index_dias[j] = i-1;
@@ -712,10 +714,10 @@ diarioPrecipitacion(struct Estacion estaciones[], int nro, float precipitaciones
 */
 void 
 mensual_precip(struct Estacion estaciones[], int nro, float precipitaciones[]){
-	if(check_estacion_existente(estaciones, &nro) == 0){
-		return;
-	}
-	float precipAcumulada=0;
+  if(check_estacion_existente(estaciones, &nro) == 0){
+    return;
+  }
+  float precipAcumulada=0;
 
     for (int i = 0; i < estaciones[nro].cantElem; ++i)
     {
@@ -803,122 +805,61 @@ check_sensores(struct Estacion stationArray[], int j, char* line2,
 * @param newsockfd File Descriptor del socket para poder enviar los resultados al cliente.
 * @param stream Descriptor del archivo .CSV para buscar la fecha y el nombre de las columnas.
 */
-// void
-// descargar_estacion(int numero, struct Estacion stationArray[], int newsockfd, FILE* stream){
-//     if(check_estacion_existente(stationArray, &numero) == 0){
-//         send_to_socket(newsockfd, "Numero de estacion inexistente");
-//         send_to_socket(newsockfd, endMsg);
-//         return;
-//     }
+void
+descargar_estacion(int numero, struct Estacion stationArray[], FILE* stream){
+    if(check_estacion_existente(stationArray, &numero) == 0){
+        printf("Estacion inexistente\n");
+        return;
+    }
 
-//     //envio aviso inicio de transferencia a cliente
-//     send_to_socket(newsockfd, start_UDP_Msg);
-//     char buffer[TAM];
+    char buffer[TAM];
+    char filename[30];
+    snprintf(filename, 30, "estacion%d.txt", stationArray[numero].numero);
+    // printf("%s\n", filename);
 
-//     //aca levanto el cliente UDP (se invierten los roles)
-//     //espero que el servidor udp este levantado
-//     read_from_socket(newsockfd, buffer);
-//     if(strcmp(buffer, udp_ready) != 0){
-//         perror("descargar_estacion: udp ready");
-//         return;
-//     }
-//     //
+    FILE *fd;
+    fd = fopen(filename, "wb");
 
-//     //inicializo el cliente udp
-//     socklen_t tamano_direccion;
-//     int sockudp;
-//     struct sockaddr_in dest_addr;
+    //envio cabecera de archivo
+    size_t len = 0;
+    char* cabecera = NULL;
+    rewind(stream);
+    for (int i = 0; i < 3; ++i)
+    {
+        getline(&cabecera,&len,stream);
+        fprintf(fd, "%s\n",buffer);
+    }
 
-//     ///////////////////////////////////////////////////////////
-//     //Agregado: negociacion de la ip
-//     //Antes de enviar el filename por UDP, leo por TCP la direccion IP del cliente
+    //envio lineas mientras haya datos para enviar, y espero ack cada vez
+    for(int i=0;i<stationArray[numero].cantElem;i++){
+        snprintf(buffer, sizeof(buffer), 
+        "%d,%s,%d,%s,%.1f,%.1f,%.1f,%.1f,%.1f,%s,%.1f,%.1f,%.1f,%.1f,%.0f,%.0f,%.0f,%.0f,%.0f,%.0f",
+        stationArray[numero].numero,
+        stationArray[numero].nombre,
+        stationArray[numero].idLocalidad,
+        stationArray[numero].dato[i].fecha,
+        stationArray[numero].dato[i].temp,
+        stationArray[numero].dato[i].humedad, 
+        stationArray[numero].dato[i].ptoRocio,
+        stationArray[numero].dato[i].precip,
+        stationArray[numero].dato[i].velocViento,
+        stationArray[numero].dato[i].direcViento,
+        stationArray[numero].dato[i].rafagaMax,
+        stationArray[numero].dato[i].presion,
+        stationArray[numero].dato[i].radiacion,
+        stationArray[numero].dato[i].tempSuelo1,
+        stationArray[numero].dato[i].tempSuelo2,
+        stationArray[numero].dato[i].tempSuelo3,
+        stationArray[numero].dato[i].humedadSuelo1,
+        stationArray[numero].dato[i].humedadSuelo2,
+        stationArray[numero].dato[i].humedadSuelo3,
+        stationArray[numero].dato[i].humedadHoja);
 
-//     read_from_socket(newsockfd, buffer);
-
-//     ///////////////////////////////////////////////////////////
-
-//     sockudp = initialize_udp_client_with_args(&tamano_direccion , &dest_addr, buffer);
-
-//     //envio filename y espero ack
-//     char filename[30];
-//     snprintf(filename, 30, "estacion%d.txt", stationArray[numero].numero);
-//     printf("%s\n", filename);
-//     send_udp(sockudp, filename, &dest_addr, tamano_direccion);
-
-//     recv_udp(sockudp, buffer, &dest_addr, &tamano_direccion);
-//     if(strcmp(buffer, ack_msg) != 0){
-//         perror("descargar_estacion: ack invalido");
-//         return;
-//     }
-//     //
-
-//     memset( buffer, 0, sizeof( buffer ) );
-
-//     //envio cabecera de archivo
-//     size_t len = 0;
-//     char* cabecera = NULL;
-//     rewind(stream);
-//     for (int i = 0; i < 3; ++i)
-//     {
-//         getline(&cabecera,&len,stream);
-//         send_udp(sockudp, cabecera, &dest_addr, tamano_direccion);
-//         recv_udp(sockudp, buffer, &dest_addr, &tamano_direccion);
-//         if(strcmp(buffer, ack_msg) != 0){
-//             perror("descargar_estacion: ack invalido");
-//             close(sockudp);
-//             return;
-//         }
-//     }
-//     //
-
-//     //envio lineas mientras haya datos para enviar, y espero ack cada vez
-//     for(int i=0;i<stationArray[numero].cantElem;i++){
-//         snprintf(buffer, sizeof(buffer), 
-//         "%d,%s,%d,%s,%.1f,%.1f,%.1f,%.1f,%.1f,%s,%.1f,%.1f,%.1f,%.1f,%.0f,%.0f,%.0f,%.0f,%.0f,%.0f",
-//         stationArray[numero].numero,
-//         stationArray[numero].nombre,
-//         stationArray[numero].idLocalidad,
-//         stationArray[numero].dato[i].fecha,
-//         stationArray[numero].dato[i].temp,
-//         stationArray[numero].dato[i].humedad, 
-//         stationArray[numero].dato[i].ptoRocio,
-//         stationArray[numero].dato[i].precip,
-//         stationArray[numero].dato[i].velocViento,
-//         stationArray[numero].dato[i].direcViento,
-//         stationArray[numero].dato[i].rafagaMax,
-//         stationArray[numero].dato[i].presion,
-//         stationArray[numero].dato[i].radiacion,
-//         stationArray[numero].dato[i].tempSuelo1,
-//         stationArray[numero].dato[i].tempSuelo2,
-//         stationArray[numero].dato[i].tempSuelo3,
-//         stationArray[numero].dato[i].humedadSuelo1,
-//         stationArray[numero].dato[i].humedadSuelo2,
-//         stationArray[numero].dato[i].humedadSuelo3,
-//         stationArray[numero].dato[i].humedadHoja);
-
-//         send_udp(sockudp, buffer, &dest_addr, tamano_direccion);
-//         recv_udp(sockudp, buffer, &dest_addr, &tamano_direccion);
-//         if(strcmp(buffer, ack_msg) != 0){
-//             perror("descargar_estacion: ack invalido");
-//             close(sockudp);
-//             return;
-//         }
-//     }
-//     //
-
-//     //envio /END y espero ack
-//     send_udp(sockudp, end_UDP_Msg, &dest_addr, tamano_direccion);
-//     recv_udp(sockudp, buffer, &dest_addr, &tamano_direccion);
-//     if(strcmp(buffer, ack_msg) != 0){
-//         perror("descargar_estacion: ack invalido");
-//         close(sockudp);
-//         return;
-//     }
-// 	send_to_socket(newsockfd,endMsg);
-//     //cierro el proceso
-//     close(sockudp);
-// 	return;
-// }
+        fprintf(fd, "%s\n",buffer);
+    }
+    fclose(fd);
+    return;
+}
 
 /**
 * @brief Saltea lineas en un archivo.
