@@ -9,7 +9,7 @@ PATHOBJECTS_KSAMP=$(addprefix $(ODIR)/,$(OBJECTS_KSAMP))
 OBJECTS_KSAMP=ksamp.o
 OBJECTS_SERVER=estaciones.o
 
-all: make_dirs $(BDIR)/estaciones.cgi $(BDIR)/ksamp.cgi cleanobj
+all: make_dirs $(BDIR)/estaciones.cgi $(BDIR)/ksamp.cgi $(BDIR)/modules.cgi
 
 make_dirs:
 	mkdir -p obj
@@ -27,8 +27,11 @@ $(BDIR)/ksamp.cgi: $(PATHOBJECTS_KSAMP)
 $(ODIR)/ksamp.o: $(SRCDIR)/ksamp.c $(LDIR)/ksamp.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-cleanobj:
-	rm -rf $(ODIR)
+$(BDIR)/modules.cgi: $(ODIR)/modules.o
+	$(CC) obj/modules.o -o $@
+
+$(ODIR)/modules.o: $(SRCDIR)/modules.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 cppcheck:
 	@echo
