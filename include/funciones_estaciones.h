@@ -82,11 +82,11 @@ struct Estacion
 /*!< Prototipos de funciones */
 size_t get_variable_offset(char variable[], int* indiceSensor);
 int promediar(struct Estacion stationArray[], char variable[], float promedios[], int* indiceSensor);
-int check_estacion_existente(struct Estacion estaciones[], int *nro);
+int check_estacion_existente(struct Estacion estaciones[], int nro);
 void mensual_precip(struct Estacion estaciones[], int nro, float precipitaciones[]);
 int skip_lines(FILE* stream, int lines);
 void check_sensores(struct Estacion stationArray[], int j, char* line2, struct sensor_disponible sensores_temp[] );
-void descargar_estacion(int numero, struct Estacion stationArray[], FILE* stream);
+void descargar_estacion(int numero, struct Estacion stationArray[], FILE* stream, char filename[]);
 void procesar_input(int newsockfd, struct Estacion stationArray[], char buffer[], FILE* stream);
 int split_line(char *line, char** tokens);
 void diarioPrecipitacion(struct Estacion estaciones[], int nro, float precipitaciones[], int index_dias[]);

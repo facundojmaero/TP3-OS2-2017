@@ -6,21 +6,21 @@ main( int argc, char *argv[] ) {
     struct Estacion stationArray[10];
     FILE* stream;
 
-    // stream = fopen("../datos_meteorologicos.CSV", "r");
-    stream = fopen("datos_meteorologicos.CSV", "r");
+    stream = fopen("../datos_meteorologicos.CSV", "r");
+    // stream = fopen("datos_meteorologicos.CSV", "r");
     if (stream == NULL) {
       perror("Error opening CSV table");
       exit(EXIT_FAILURE);
-  }
+    }
 
     leer_archivo(stationArray, stream);
 
-    char data[50];
-    // char *data = getenv("QUERY_STRING");
+    // char data[50];
+    char *data = getenv("QUERY_STRING");
     char query[50];
     char query_arg[50];
-    strcpy(data, "q=descargar&a=30099");
-    printf("DATA: '%s'\n", data);
+    // strcpy(data, "q=descargar&a=30099");
+    // printf("DATA: '%s'\n", data);
 
     if(parseString(data, "a=", "", query_arg) == -1){
         printf("Error parseString\n");
@@ -55,8 +55,9 @@ main( int argc, char *argv[] ) {
         int index_dias[31];
         diarioPrecipitacion(stationArray, atoi(query_arg), precipitaciones, index_dias);
         int i;
-        int num = atoi(query_arg);
-        check_estacion_existente(stationArray, &num);
+
+        int num = check_estacion_existente(stationArray, atoi(query_arg));
+
         for (i = 0; i < 31; ++i)
         {
             if(precipitaciones[i] == -1){
@@ -74,15 +75,20 @@ main( int argc, char *argv[] ) {
         float precipitaciones[1];
         mensual_precip(stationArray, atoi(query_arg), precipitaciones);
         // printf("%i %.1f\n",atoi(query_arg), precipitaciones[0]);
-        int num = 0;
-        check_estacion_existente(stationArray, &num);
+        int num = check_estacion_existente(stationArray, atoi(query_arg));
         char titulo[100];
         snprintf(titulo, 100, "Precipitación Mensual - Estación %i %s", stationArray[num].numero, stationArray[num].nombre);
         print_page_header(titulo);
         print_resto_pagina(stationArray, query, query_arg, precipitaciones, 1, NULL, NULL);
     }
     else if(strcmp(query,"descargar") == 0){
-        descargar_estacion(atoi(query_arg), stationArray, stream);
+        char filename[50];
+        descargar_estacion(atoi(query_arg), stationArray, stream, filename);
+        int num = check_estacion_existente(stationArray, atoi(query_arg));
+        char titulo[100];
+        snprintf(titulo, 100, "Archivo generado - Estación %i %s", stationArray[num].numero, stationArray[num].nombre);
+        print_page_header(titulo);
+        print_resto_pagina(stationArray, query, query_arg, NULL, 1, NULL, filename);
     }
 
     return 0; 
@@ -290,7 +296,7 @@ print_page_header(char titulo[]){
 
 void
 print_resto_pagina(struct Estacion stationArray[], char query[], 
-    char query_arg[], float datos[], int len, int index_dias[], char unidades[]){
+    char query_arg[], float datos[], int len, int index_dias[], char extra[]){
 
     printf(""
     "<div class='w3-twothird w3-container'>");
@@ -313,7 +319,7 @@ print_resto_pagina(struct Estacion stationArray[], char query[],
                   "  <td>%.2f %s</td>"
                   "</tr>            "
                   ,stationArray[i].numero, stationArray[i].nombre,
-                  datos[i], unidades
+                  datos[i], extra
                   );
             }
             else{
@@ -336,8 +342,7 @@ print_resto_pagina(struct Estacion stationArray[], char query[],
 
     else if(strcmp(query, "diario_precip") == 0){
 
-        int est = 0;
-        check_estacion_existente(stationArray, &est);
+        int est = check_estacion_existente(stationArray, atoi(query_arg));
 
         printf(""
         "<table class=\"w3-table w3-striped w3-bordered\">"
@@ -382,6 +387,18 @@ print_resto_pagina(struct Estacion stationArray[], char query[],
         
         printf(
         "</table>"
+        );
+    }
+
+    else if(strcmp(query, "descargar") == 0){
+        char filename[50];
+        parseString(extra, "../files/", "", filename);
+        
+        printf(""
+        "<div class='w3-twothird w3-container'>"
+        "<p><a class=\"w3-button w3-border w3-xlarge\" href=\"download.pl?file=%s\">Descargar</a></p>"
+        "</div>",
+        filename
         );
     }
 
@@ -651,15 +668,14 @@ promediar(struct Estacion stationArray[], char variable[], float promedios[], in
 * @return 1 si la estacion existe, 0 en caso contrario.
 */
 int
-check_estacion_existente(struct Estacion estaciones[], int *nro){
+check_estacion_existente(struct Estacion estaciones[], int nro){
     for (int i = 0; i < NRO_ESTACIONES; ++i)
     {
-        if(estaciones[i].numero == *nro){
-            *nro = i;
-            return 1;
+        if(estaciones[i].numero == nro){
+            return i;
         }   
     } 
-    return 0;
+    return -1;
 }
 
 /**
@@ -673,8 +689,9 @@ check_estacion_existente(struct Estacion estaciones[], int *nro){
 * @param nro ID de la estacion solicitada.
 */
 void 
-diarioPrecipitacion(struct Estacion estaciones[], int nro, float precipitaciones[], int index_dias[]){
-  if(check_estacion_existente(estaciones, &nro) == 0){
+diarioPrecipitacion(struct Estacion estaciones[], int index, float precipitaciones[], int index_dias[]){
+  int nro = check_estacion_existente(estaciones, index);
+  if(nro == -1){
         printf("Estacion inexistente\n");
     return;
   }
@@ -713,8 +730,9 @@ diarioPrecipitacion(struct Estacion estaciones[], int nro, float precipitaciones
 * @param nro ID de la estacion solicitada.
 */
 void 
-mensual_precip(struct Estacion estaciones[], int nro, float precipitaciones[]){
-  if(check_estacion_existente(estaciones, &nro) == 0){
+mensual_precip(struct Estacion estaciones[], int index, float precipitaciones[]){
+  int nro = check_estacion_existente(estaciones, index);
+  if(nro == -1){
     return;
   }
   float precipAcumulada=0;
@@ -806,15 +824,15 @@ check_sensores(struct Estacion stationArray[], int j, char* line2,
 * @param stream Descriptor del archivo .CSV para buscar la fecha y el nombre de las columnas.
 */
 void
-descargar_estacion(int numero, struct Estacion stationArray[], FILE* stream){
-    if(check_estacion_existente(stationArray, &numero) == 0){
-        printf("Estacion inexistente\n");
-        return;
+descargar_estacion(int index, struct Estacion stationArray[], FILE* stream, char filename[]){
+    int numero = check_estacion_existente(stationArray, index);
+    if(numero == -1){
+      return;
     }
 
     char buffer[TAM];
-    char filename[30];
-    snprintf(filename, 30, "estacion%d.txt", stationArray[numero].numero);
+    snprintf(filename, 50, "../files/estacion%d.txt", stationArray[numero].numero);
+    // snprintf(filename, 30, "../files/log.txt");
     // printf("%s\n", filename);
 
     FILE *fd;
@@ -827,7 +845,7 @@ descargar_estacion(int numero, struct Estacion stationArray[], FILE* stream){
     for (int i = 0; i < 3; ++i)
     {
         getline(&cabecera,&len,stream);
-        fprintf(fd, "%s\n",buffer);
+        fprintf(fd, "%s\n",cabecera);
     }
 
     //envio lineas mientras haya datos para enviar, y espero ack cada vez
