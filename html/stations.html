@@ -1,0 +1,111 @@
+<html>
+<title>Stations</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+  body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
+  .w3-bar,h1,button {font-family: "Montserrat", sans-serif}
+  .fa-anchor,.fa-coffee {font-size:200px}
+</style>
+<body>
+
+  <!-- Navbar -->
+  <div>
+    <div class="w3-bar w3-red w3-card-2 w3-left-align w3-large">
+      <a href="index.html" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
+      <a href="cgi-bin/ksamp.cgi" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">System Info</a>
+      <a href="stations.html" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Stations</a>
+      <a href="#" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Drivers and Modules</a>
+      <a href="#" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Documentation</a>
+    </div>
+  </div>
+  <!-- Header -->
+  <header class="w3-container w3-red w3-left-align" style="padding:0px 16px">
+    <h1 class="w3-padding-8 w3-xxlarge w3-third">Estaciones</h1>
+    <h1 class="w3-padding-8 w3-xlarge w3-twothird"></h1>
+  </header>
+
+  <div class="w3-third w3-container w3-padding">
+    <div class="w3-bar w3-light-grey">
+    <a class="w3-bar-item ">Promedio</a>
+      <div class="w3-dropdown-hover w3-right">
+        <button class="w3-button" onclick="displaySensores()">
+          Sensor <i class="fa fa-caret-down"></i>
+        </button>
+          <div id="Sensores" class="w3-dropdown-content w3-bar-block w3-card-2">
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=temp" class="w3-bar-item w3-button">Temperatura</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=humedad" class="w3-bar-item w3-button">Humedad</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=ptoRocio" class="w3-bar-item w3-button">Punto de Rocío</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=precip" class="w3-bar-item w3-button">Precipitación</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=velocViento" class="w3-bar-item w3-button">Velocidad Viento</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=rafagaMax" class="w3-bar-item w3-button">Ráfaga Máxima</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=presion" class="w3-bar-item w3-button">Presión</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=radiacion" class="w3-bar-item w3-button">Radiación Solar</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=tempSuelo1" class="w3-bar-item w3-button">Temperatura Suelo 1</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=tempSuelo2" class="w3-bar-item w3-button">Temperatura Suelo 2</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=tempSuelo3" class="w3-bar-item w3-button">Temperatura Suelo 3</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=humedadSuelo1" class="w3-bar-item w3-button">Humedad Suelo 1</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=humedadSuelo2" class="w3-bar-item w3-button">Humedad Suelo 2</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=humedadSuelo3" class="w3-bar-item w3-button">Humedad Suelo 3</a>
+            <a href="cgi-bin/estaciones.cgi?q=promedio&a=humedadHoja" class="w3-bar-item w3-button">Humedad Hoja</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="w3-bar w3-light-grey">
+      <a class="w3-bar-item ">Precipitaciones Diarias</a>
+      <div class="w3-dropdown-hover w3-right">
+        <button class="w3-button" onclick="displayPrecipDiarias()">
+          Estación <i class="fa fa-caret-down"></i>
+        </button>
+        <div id="precipDiarias" class="w3-dropdown-content w3-bar-block w3-card-2">
+          <a href="cgi-bin/estaciones.cgi?q=diario_precip&a=30135" class="w3-bar-item w3-button">30135 - Yacanto Norte</a>
+          <a href="cgi-bin/estaciones.cgi?q=diario_precip&a=30057" class="w3-bar-item w3-button">30057 - Magyacba 60 cuadras</a>
+          <a href="cgi-bin/estaciones.cgi?q=diario_precip&a=30061" class="w3-bar-item w3-button">30061 - Magyacba La Cumbrecita </a>
+          <a href="cgi-bin/estaciones.cgi?q=diario_precip&a=30099" class="w3-bar-item w3-button">30099 - Cerro Obero </a>
+          <a href="cgi-bin/estaciones.cgi?q=diario_precip&a=30069" class="w3-bar-item w3-button">30069 - Magyacba Oliva </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="w3-bar w3-light-grey">
+      <a class="w3-bar-item ">Precipitaciones Mensuales</a>
+      <div class="w3-dropdown-hover w3-right">
+        <button class="w3-button" onclick="displayPrecipMensuales()">
+          Estación <i class="fa fa-caret-down"></i>
+        </button>
+        <div id="precipMensuales" class="w3-dropdown-content w3-bar-block w3-card-2">
+          <a href="cgi-bin/estaciones.cgi?q=mensual_precip&a=30135" class="w3-bar-item w3-button">30135 - Yacanto Norte</a>
+          <a href="cgi-bin/estaciones.cgi?q=mensual_precip&a=30057" class="w3-bar-item w3-button">30057 - Magyacba 60 cuadras</a>
+          <a href="cgi-bin/estaciones.cgi?q=mensual_precip&a=30061" class="w3-bar-item w3-button">30061 - Magyacba La Cumbrecita </a>
+          <a href="cgi-bin/estaciones.cgi?q=mensual_precip&a=30099" class="w3-bar-item w3-button">30099 - Cerro Obero </a>
+          <a href="cgi-bin/estaciones.cgi?q=mensual_precip&a=30069" class="w3-bar-item w3-button">30069 - Magyacba Oliva </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="w3-bar w3-light-grey">
+      <a class="w3-bar-item ">Descargar</a>
+      <div class="w3-dropdown-hover w3-right">
+        <button class="w3-button" onclick="displayDescarga()">
+          Estación <i class="fa fa-caret-down"></i>
+        </button>
+        <div id="descarga" class="w3-dropdown-content w3-bar-block w3-card-2">
+          <a href="cgi-bin/estaciones.cgi?q=descargar&a=30135" class="w3-bar-item w3-button">30135 - Yacanto Norte</a>
+          <a href="cgi-bin/estaciones.cgi?q=descargar&a=30057" class="w3-bar-item w3-button">30057 - Magyacba 60 cuadras</a>
+          <a href="cgi-bin/estaciones.cgi?q=descargar&a=30061" class="w3-bar-item w3-button">30061 - Magyacba La Cumbrecita </a>
+          <a href="cgi-bin/estaciones.cgi?q=descargar&a=30099" class="w3-bar-item w3-button">30099 - Cerro Obero </a>
+          <a href="cgi-bin/estaciones.cgi?q=descargar&a=30069" class="w3-bar-item w3-button">30069 - Magyacba Oliva </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class='w3-twothird w3-container'>
+  </div>
+</body>
+</html>
