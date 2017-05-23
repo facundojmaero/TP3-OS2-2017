@@ -44,4 +44,4 @@ while ( <$upload_filehandle> ){
 
 close UPLOADFILE;
 
-print "Location: modules.cgi\n\n";
+print "Location: install.sh\n\n";

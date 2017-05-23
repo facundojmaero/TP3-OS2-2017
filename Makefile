@@ -8,9 +8,9 @@ PATHOBJECTS_SERVER=$(addprefix $(ODIR)/,$(OBJECTS_SERVER))
 PATHOBJECTS_KSAMP=$(addprefix $(ODIR)/,$(OBJECTS_KSAMP))
 OBJECTS_KSAMP=ksamp.o
 OBJECTS_SERVER=estaciones.o
-obj-m += ksrc/driver.o
+obj-m += ksrc/helloWorld.o
 
-all: make_dirs $(BDIR)/estaciones.cgi $(BDIR)/ksamp.cgi $(BDIR)/modules.cgi driver
+all: make_dirs $(BDIR)/estaciones.cgi $(BDIR)/ksamp.cgi $(BDIR)/modules.cgi helloWorld
 
 make_dirs:
 	mkdir -p obj
@@ -34,7 +34,7 @@ $(BDIR)/modules.cgi: $(ODIR)/modules.o
 $(ODIR)/modules.o: $(SRCDIR)/modules.c
 	$(CC) $(FLAGS) -c $< -o $@
 
-driver:
+helloWorld:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
 cppcheck:

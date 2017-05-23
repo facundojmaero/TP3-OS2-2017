@@ -114,6 +114,7 @@ void printPage(struct Modulo modulos[], int cant){
       "<p>Archivo a subir: <input type=\"file\" name=\"modulo\" /></p> "
       "<p><input class=\"w3-button w3-border w3-large\" type=\"submit\" name=\"Submit\" value=\"Subir Módulo\" /></p> "
       "</form>"
+      "<p><a class=\"w3-button w3-border w3-large\" href=\"remove.sh\">Eliminar modulo</a></p>"
       "</div>"
       );
         
