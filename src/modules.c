@@ -100,10 +100,24 @@ void printPage(struct Modulo modulos[], int cant){
             modulos[i].instances_loaded, modulos[i].status
             );
     }
-        
+
     printf(
         "</table>"
         "</div>"
+        );
+
+    printf(
+      "<div class='w3-half w3-container'>"
+      // "<p><a class=\"w3-button w3-border w3-large\" href=\"#\">Subir archivo</a></p>"
+      // "<p><a class=\"w3-button w3-border w3-large\" href=\"#\">Borrar módulo</a></p>"
+      "<form action=\"/cgi-bin/upload.cgi\" method=\"post\" enctype=\"multipart/form-data\"> "
+      "<p>Archivo a subir: <input type=\"file\" name=\"modulo\" /></p> "
+      "<p><input class=\"w3-button w3-border w3-large\" type=\"submit\" name=\"Submit\" value=\"Subir Módulo\" /></p> "
+      "</form>"
+      "</div>"
+      );
+        
+    printf(
         "</body>"
         "</html>"
         );

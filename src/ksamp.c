@@ -94,7 +94,7 @@ void printPage(struct Datos datos, struct Interval data){
     "    <span>%ldD %ld:%02ld:%02ld</span>"
     "  </li>"
     "  <li class=\"w3-padding-16\">"
-    "    <img src=\"../icons/kernel.jpg\" class=\"w3-left w3-circle w3-margin-right\" style=\"width:50px\">"
+    "    <img src=\"../icons/kernel.png\" class=\"w3-left w3-circle w3-margin-right\" style=\"width:50px\">"
     "    <span class=\"w3-large\">Linux Kernel Version</span><br>"
     "    <span>%s</span>"
     "  </li>"
