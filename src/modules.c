@@ -60,7 +60,7 @@ void printPage(struct Modulo modulos[], int cant){
         // <!-- Navbar -->
         "<div>"
         "<div class=\"w3-bar w3-red w3-card-2 w3-left-align w3-large\">"
-        "<a href=\"index.html\" class=\"w3-bar-item w3-button w3-padding-large w3-white\">Home</a>"
+        "<a href=\"../index.html\" class=\"w3-bar-item w3-button w3-padding-large w3-white\">Home</a>"
         "<a href=\"ksamp.cgi\" class=\"w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white\">System Info</a>"
         "<a href=\"../stations.html\" class=\"w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white\">Stations</a>"
         "<a href=\"modules.cgi\" class=\"w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white\">Drivers and Modules</a>"

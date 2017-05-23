@@ -83,7 +83,7 @@ struct Estacion
 size_t get_variable_offset(char variable[], int* indiceSensor);
 int promediar(struct Estacion stationArray[], char variable[], float promedios[], int* indiceSensor);
 int check_estacion_existente(struct Estacion estaciones[], int nro);
-void mensual_precip(struct Estacion estaciones[], int nro, float precipitaciones[]);
+float mensual_precip(struct Estacion estaciones[], int nro);
 int skip_lines(FILE* stream, int lines);
 void check_sensores(struct Estacion stationArray[], int j, char* line2, struct sensor_disponible sensores_temp[] );
 void descargar_estacion(int numero, struct Estacion stationArray[], FILE* stream, char filename[]);
@@ -91,7 +91,10 @@ void procesar_input(int newsockfd, struct Estacion stationArray[], char buffer[]
 int split_line(char *line, char** tokens);
 void diarioPrecipitacion(struct Estacion estaciones[], int nro, float precipitaciones[], int index_dias[]);
 void leer_archivo(struct Estacion stationArray[10], FILE* stream);
-void print_resto_pagina(struct Estacion stationArray[], char query[], char query_arg[], float datos[], int len, int index_dias[], char unidades[]);
 int parseString(char cadena[], char before[], char after[], char token[]);
 void print_page_header(char titulo[]);
 int traducir_nombre_sensor(char sensor[], char traduccion[], char unidades[]);
+void print_tabla_promedios(struct Estacion stationArray[], float promedios[], char unidades[]);
+void print_precipitaciones_diarias(struct Estacion stationArray[], int station_index, float datos[], int index_dias[]);
+void print_precipitaciones_mensual(float precipitaciones);
+void print_descarga(char filename[]);

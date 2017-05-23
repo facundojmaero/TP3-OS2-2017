@@ -47,48 +47,41 @@ main( int argc, char *argv[] ) {
         traducir_nombre_sensor(query_arg, sensor, unidades);
         strcat(titulo, sensor);
         print_page_header(titulo);
-        print_resto_pagina(stationArray, query, query_arg, promedios, NRO_ESTACIONES, NULL, unidades);
+        print_tabla_promedios(stationArray, promedios, unidades);
     }
 
     else if(strcmp(query,"diario_precip") == 0){
         float precipitaciones[31];
         int index_dias[31];
+        
         diarioPrecipitacion(stationArray, atoi(query_arg), precipitaciones, index_dias);
-        int i;
-
         int num = check_estacion_existente(stationArray, atoi(query_arg));
 
-        for (i = 0; i < 31; ++i)
-        {
-            if(precipitaciones[i] == -1){
-                break;
-            }
-            // printf("%s %.1f, %d\n",stationArray[num].dato[index_dias[i]].dia, precipitaciones[i], index_dias[i]);
-        }
         char titulo[100];
         snprintf(titulo, 100, "Precipitación Diaria - Estación %i %s", stationArray[num].numero, stationArray[num].nombre);
         print_page_header(titulo);
-        print_resto_pagina(stationArray, query, query_arg, precipitaciones, i, index_dias, NULL);
+        print_precipitaciones_diarias(stationArray, num, precipitaciones, index_dias);
     }
 
     else if(strcmp(query,"mensual_precip") == 0){
-        float precipitaciones[1];
-        mensual_precip(stationArray, atoi(query_arg), precipitaciones);
-        // printf("%i %.1f\n",atoi(query_arg), precipitaciones[0]);
+        
+        float precipitaciones = mensual_precip(stationArray, atoi(query_arg));
         int num = check_estacion_existente(stationArray, atoi(query_arg));
         char titulo[100];
         snprintf(titulo, 100, "Precipitación Mensual - Estación %i %s", stationArray[num].numero, stationArray[num].nombre);
         print_page_header(titulo);
-        print_resto_pagina(stationArray, query, query_arg, precipitaciones, 1, NULL, NULL);
+        print_precipitaciones_mensual(precipitaciones);
     }
+
     else if(strcmp(query,"descargar") == 0){
+    
         char filename[50];
         descargar_estacion(atoi(query_arg), stationArray, stream, filename);
         int num = check_estacion_existente(stationArray, atoi(query_arg));
         char titulo[100];
         snprintf(titulo, 100, "Archivo generado - Estación %i %s", stationArray[num].numero, stationArray[num].nombre);
         print_page_header(titulo);
-        print_resto_pagina(stationArray, query, query_arg, NULL, 1, NULL, filename);
+        print_descarga(filename);
     }
 
     return 0; 
@@ -202,7 +195,7 @@ print_page_header(char titulo[]){
       "    <a href=\"../index.html\" class=\"w3-bar-item w3-button w3-padding-large w3-white\">Home</a>"
       "    <a href=\"ksamp.cgi\" class=\"w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white\">System Info</a>"
       "    <a href=\"../stations.html\" class=\"w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white\">Stations</a>"
-      "    <a href=\"#\" class=\"w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white\">Drivers and Modules</a>"
+      "    <a href=\"modules.cgi\" class=\"w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white\">Drivers and Modules</a>"
       "    <a href=\"#\" class=\"w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white\">Documentation</a>"
       "  </div>"
       "</div>"
@@ -282,11 +275,11 @@ print_page_header(char titulo[]){
       "      Estación <i class=\"fa fa-caret-down\"></i>"
       "    </button>"
       "    <div id=\"descarga\" class=\"w3-dropdown-content w3-bar-block w3-card-2\">"
-      "      <a href=\"#\" class=\"w3-bar-item w3-button\">30135 - Yacanto Norte</a>"
-      "      <a href=\"#\" class=\"w3-bar-item w3-button\">30057 - Magyacba 60 cuadras</a>"
-      "      <a href=\"#\" class=\"w3-bar-item w3-button\">30061 - Magyacba La Cumbrecita </a>"
-      "      <a href=\"#\" class=\"w3-bar-item w3-button\">30099 - Cerro Obero </a>"
-      "      <a href=\"#\" class=\"w3-bar-item w3-button\">30069 - Magyacba Oliva </a>"
+      "      <a href=\"estaciones.cgi?q=descargar&a=30135\" class=\"w3-bar-item w3-button\">30135 - Yacanto Norte</a>"
+      "      <a href=\"estaciones.cgi?q=descargar&a=30057\" class=\"w3-bar-item w3-button\">30057 - Magyacba 60 cuadras</a>"
+      "      <a href=\"estaciones.cgi?q=descargar&a=30061\" class=\"w3-bar-item w3-button\">30061 - Magyacba La Cumbrecita </a>"
+      "      <a href=\"estaciones.cgi?q=descargar&a=30099\" class=\"w3-bar-item w3-button\">30099 - Cerro Obero </a>"
+      "      <a href=\"estaciones.cgi?q=descargar&a=30069\" class=\"w3-bar-item w3-button\">30069 - Magyacba Oliva </a>"
       "    </div>"
       "  </div>"
       "</div>"
@@ -295,112 +288,125 @@ print_page_header(char titulo[]){
 }
 
 void
-print_resto_pagina(struct Estacion stationArray[], char query[], 
-    char query_arg[], float datos[], int len, int index_dias[], char extra[]){
+print_tabla_promedios(struct Estacion stationArray[], float promedios[], char unidades[]){
+    printf(""
+        "<div class='w3-twothird w3-container'>");
 
     printf(""
-    "<div class='w3-twothird w3-container'>");
-
-    if(strcmp(query, "promedio") == 0){
-
-        printf(""
         "<table class=\"w3-table w3-striped w3-bordered\">"
         "  <tr>"
         "    <th>Estación</th>"
         "    <th>Promedio</th>"
         "  </tr>");
 
-        for (int i = 0; i < NRO_ESTACIONES; ++i)
-        {
-            if(datos[i] != -1000){
-                printf(""
-                  "<tr>"
-                  "  <td>%d - %s</td>"
-                  "  <td>%.2f %s</td>"
-                  "</tr>            "
-                  ,stationArray[i].numero, stationArray[i].nombre,
-                  datos[i], extra
-                  );
-            }
-            else{
-                printf(""
-                  "<tr>"
-                  "  <td>%d - %s</td>"
-                  "  <td>Sensor no disponible</td>"
-                  "</tr>"
-                  ,stationArray[i].numero, stationArray[i].nombre
-                  );
-            }
-        }
-        
-        printf(
-        "</table>"
-        "</body>"
-        "</html>"
-        );
-    }
-
-    else if(strcmp(query, "diario_precip") == 0){
-
-        int est = check_estacion_existente(stationArray, atoi(query_arg));
-
-        printf(""
-        "<table class=\"w3-table w3-striped w3-bordered\">"
-        "  <tr>"
-        "    <th>Día</th>"
-        "    <th>Precipitaciones</th>"
-        "  </tr>");
-
-        for (int i = 0; i < len; ++i)
-        {
+    for (int i = 0; i < NRO_ESTACIONES; ++i)
+    {
+        if(promedios[i] != -1000){
             printf(""
-          "<tr>"
-          "  <td>%s</td>"
-          "  <td>%.1f mm</td>"
-          "</tr>            "
-          ,stationArray[est].dato[index_dias[i]].dia,
-          datos[i]
-          );
+              "<tr>"
+              "  <td>%d - %s</td>"
+              "  <td>%.2f %s</td>"
+              "</tr>            "
+              ,stationArray[i].numero, stationArray[i].nombre,
+              promedios[i], unidades
+              );
         }
-        
-        printf(
-        "</table>"
-        );
+        else{
+            printf(""
+              "<tr>"
+              "  <td>%d - %s</td>"
+              "  <td>Sensor no disponible</td>"
+              "</tr>"
+              ,stationArray[i].numero, stationArray[i].nombre
+              );
+        }
     }
+    
+    printf(
+    "</table>"
+    "</body>"
+    "</html>"
+    );
+}
 
-    else if(strcmp(query, "mensual_precip") == 0){
+void
+print_precipitaciones_diarias(struct Estacion stationArray[], int station_index, float datos[], int index_dias[]){
 
+    printf(""
+    "<div class='w3-twothird w3-container'>");
+
+    printf(""
+    "<table class=\"w3-table w3-striped w3-bordered\">"
+    "  <tr>"
+    "    <th>Día</th>"
+    "    <th>Precipitaciones</th>"
+    "  </tr>");
+
+    for (int i = 0; i < 31; ++i)
+    {
+      if(datos[i] == -1){
+        break;
+      }
         printf(""
-        "<table class=\"w3-table w3-striped w3-bordered\">"
-        "  <tr>"
-        "    <th>Mes</th>"
-        "    <th>Precipitaciones</th>"
-        "  </tr>");
-
-        printf(""
-        "<tr>"
-        "  <td>Febrero</td>"
-        "  <td>%.1f</td>"
-        "</tr>            "
-        ,datos[0]
-        );
-        
-        printf(
-        "</table>"
-        );
+      "<tr>"
+      "  <td>%s</td>"
+      "  <td>%.1f mm</td>"
+      "</tr>            "
+      ,stationArray[station_index].dato[index_dias[i]].dia,
+      datos[i]
+      );
     }
+    
+    printf(
+    "</table>"
+    "</body>"
+    "</html>"
+    );
+}
 
-    else if(strcmp(query, "descargar") == 0){
-        char filename[50];
-        parseString(extra, "../files/", "", filename);
-        
-        printf(""
-        "<div class='w3-twothird w3-container'>"
-        "<p><a class=\"w3-button w3-border w3-xlarge\" href=\"download.pl?file=%s\">Descargar</a></p>"
-        "</div>",
-        filename
-        );
-    }
+void
+print_precipitaciones_mensual(float precipitaciones){
+
+    printf(""
+    "<div class='w3-twothird w3-container'>");
+
+    printf(""
+    "<table class=\"w3-table w3-striped w3-bordered\">"
+    "  <tr>"
+    "    <th>Mes</th>"
+    "    <th>Precipitaciones</th>"
+    "  </tr>");
+
+    printf(""
+    "<tr>"
+    "  <td>Febrero</td>"
+    "  <td>%.1f</td>"
+    "</tr>            "
+    ,precipitaciones
+    );
+    
+    printf(
+    "</table>"
+    "</body>"
+    "</html>"
+    );
+}
+
+void
+print_descarga(char filename[]){
+
+    printf(""
+    "<div class='w3-twothird w3-container'>");    
+
+    char filename_aux[50];
+    parseString(filename, "../files/", "", filename_aux);
+    
+    printf(""
+    "<div class='w3-twothird w3-container'>"
+    "<p><a class=\"w3-button w3-border w3-xlarge\" href=\"download.pl?file=%s\">Descargar</a></p>"
+    "</div>",
+    filename_aux
+    );
 
     printf(
     "</div>"
@@ -428,7 +434,6 @@ leer_archivo(struct Estacion stationArray[10], FILE* stream){
 
   const char s[2] = ",";
   char *token;
-    // struct Estacion stationArray[10];
     int i=0;//fila del archivo
     int j=0;//numero de estacion
     int idEstacion;
@@ -628,12 +633,8 @@ promediar(struct Estacion stationArray[], char variable[], float promedios[], in
         return -1;
     }
 
-    // printf("Promedios variable %s:\n", variable);
-
     for(int j=0; j < NRO_ESTACIONES; j++){
         if(stationArray[j].sensores[*indiceSensor].esta == 0){
-            // printf("%d - %s: No se encuentran datos.\n",
-            //     stationArray[j].numero, stationArray[j].nombre);
             promedios[j] = -1000;
             continue;
         }
@@ -649,8 +650,6 @@ promediar(struct Estacion stationArray[], char variable[], float promedios[], in
         }
         
         suma = suma/stationArray[j].cantElem;
-        // printf("%d - %s: %.1f\n", stationArray[j].numero, 
-        //     stationArray[j].nombre,suma);
         promedios[j] = suma;
     }
     return 0; 
@@ -729,11 +728,11 @@ diarioPrecipitacion(struct Estacion estaciones[], int index, float precipitacion
 * @param estaciones[] Arreglo con todos los datos de todas las estaciones.
 * @param nro ID de la estacion solicitada.
 */
-void 
-mensual_precip(struct Estacion estaciones[], int index, float precipitaciones[]){
+float
+mensual_precip(struct Estacion estaciones[], int index){
   int nro = check_estacion_existente(estaciones, index);
   if(nro == -1){
-    return;
+    return -1;
   }
   float precipAcumulada=0;
 
@@ -743,7 +742,7 @@ mensual_precip(struct Estacion estaciones[], int index, float precipitaciones[])
     }
     // printf("Precipitacion acumulada mensual.\n%d - Estacion %s: %.1f mm\n", 
     //     estaciones[nro].numero,estaciones[nro].nombre,precipAcumulada);
-    precipitaciones[0] = precipAcumulada;
+    return precipAcumulada;
 }
 
 /**
@@ -832,10 +831,13 @@ descargar_estacion(int index, struct Estacion stationArray[], FILE* stream, char
 
     char buffer[TAM];
     snprintf(filename, 50, "../files/estacion%d.txt", stationArray[numero].numero);
-    // snprintf(filename, 30, "../files/log.txt");
-    // printf("%s\n", filename);
 
     FILE *fd;
+
+    if( access( filename, F_OK ) != -1 ) {
+        return;
+    }
+
     fd = fopen(filename, "wb");
 
     //envio cabecera de archivo
