@@ -26,7 +26,7 @@ my $path_to_files = '/var/www/html/files/';
 my $error_log     = '/home/user/downloads/logs/errors.txt';
  
 # Option to log errors: 1 = yes, 0 = no
-my $log           = 1;
+my $log           = 0;
  
 # To prevent hot-linking to your script
 # my $url = 'http://www.yoursite.com';

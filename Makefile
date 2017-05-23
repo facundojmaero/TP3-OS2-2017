@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -pedantic -Werror
+FLAGS = -Wall -pedantic -Werror
 ODIR=obj
 LDIR=include
 SRCDIR=src
@@ -8,8 +8,9 @@ PATHOBJECTS_SERVER=$(addprefix $(ODIR)/,$(OBJECTS_SERVER))
 PATHOBJECTS_KSAMP=$(addprefix $(ODIR)/,$(OBJECTS_KSAMP))
 OBJECTS_KSAMP=ksamp.o
 OBJECTS_SERVER=estaciones.o
+obj-m += ksrc/driver.o
 
-all: make_dirs $(BDIR)/estaciones.cgi $(BDIR)/ksamp.cgi $(BDIR)/modules.cgi
+all: make_dirs $(BDIR)/estaciones.cgi $(BDIR)/ksamp.cgi $(BDIR)/modules.cgi driver
 
 make_dirs:
 	mkdir -p obj
@@ -19,19 +20,22 @@ $(BDIR)/estaciones.cgi: $(PATHOBJECTS_SERVER)
 	$(CC) $(PATHOBJECTS_SERVER) -o $@
 
 $(ODIR)/estaciones.o: $(SRCDIR)/estaciones.c $(LDIR)/funciones_estaciones.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(FLAGS) -c $< -o $@
 
 $(BDIR)/ksamp.cgi: $(PATHOBJECTS_KSAMP)
 	$(CC) $(PATHOBJECTS_KSAMP) -o $@
 
 $(ODIR)/ksamp.o: $(SRCDIR)/ksamp.c $(LDIR)/ksamp.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(FLAGS) -c $< -o $@
 
 $(BDIR)/modules.cgi: $(ODIR)/modules.o
 	$(CC) obj/modules.o -o $@
 
 $(ODIR)/modules.o: $(SRCDIR)/modules.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(FLAGS) -c $< -o $@
+
+driver:
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
 cppcheck:
 	@echo
@@ -42,3 +46,4 @@ cppcheck:
 clean:
 	@echo Borrando archivos
 	rm -rf *o $(ODIR) $(BDIR) $(LDIR)/*.gch err.txt
+	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean

@@ -7,8 +7,8 @@ use File::Basename;
 
 $CGI::POST_MAX = 1024 * 5000;
 
-my $safe_filename_characters = "a-zA-Z0-9_.-";
-my $upload_dir = "/var/www/html/files";
+# my $safe_filename_characters = "a-zA-Z0-9_.-";
+my $upload_dir = "/var/www/html/uploads";
 
 my $query = new CGI; 
 my $filename = $query->param("modulo"); 
@@ -24,14 +24,14 @@ my ( $name, $path, $extension ) = fileparse ( $filename, '..*' );
 $filename = $name . $extension;
 
 $filename =~ tr/ /_/; 
-$filename =~ s/[^$safe_filename_characters]//g;
+# $filename =~ s/[^$safe_filename_characters]//g;
 
-if ( $filename =~ /^([$safe_filename_characters]+)$/ ) { 
-	$filename = $1; 
-} 
-else { 
-	die "Filename contains invalid characters"; 
+if ($filename =~ /^(\w+[\w.-]+\.ko)$/o) {
+   $filename = $1;
 }
+else {
+   die "El archivo a subir no es del tipo modulo"; 
+}  
 
 my $upload_filehandle = $query->upload("modulo");
 
