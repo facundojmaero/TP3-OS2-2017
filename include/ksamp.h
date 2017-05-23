@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sys/unistd.h>
 #include <getopt.h>
+#include <time.h>
 #define MBYTE 1024
 
 // const long minute = 60;
@@ -31,12 +32,11 @@ char after[32];
 
 struct Datos {
 	char  hostname[50];
-	char  fecha [20];
-    char  hora [20];
 	char  cpu[50];
 	char  kernel[50];
 	long  uptime;
 	int   filesystems;
+	struct tm time;
 };
 
 struct Interval{

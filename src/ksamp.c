@@ -86,7 +86,7 @@ void printPage(struct Datos datos, struct Interval data){
     "  <li class=\"w3-padding-16\">"
     "    <img src=\"../icons/clock.png\" class=\"w3-left w3-circle w3-margin-right\" style=\"width:50px\">"
     "    <span class=\"w3-large\">Hora y Fecha</span><br>"
-    "    <span>%s - %s</span>"
+    "    <span>%d:%d:%d %d-%d-%d</span>"
     "  </li>"
     "  <li class=\"w3-padding-16\">"
     "    <img src=\"../icons/uptime.png\" class=\"w3-left w3-circle w3-margin-right\" style=\"width:50px\">"
@@ -105,37 +105,16 @@ void printPage(struct Datos datos, struct Interval data){
     datos.hostname,
     datos.cpu, data.load1Min, data.load5Min, data.load15Min,
     data.memDisp/MBYTE,data.memTot/MBYTE,
-    datos.hora,datos.fecha,
+    datos.time.tm_hour, datos.time.tm_min, datos.time.tm_sec, datos.time.tm_year + 1900, datos.time.tm_mon + 1, datos.time.tm_mday, 
     ut/day, (ut%day)/hour,(ut%hour)/minute,ut%minute,
     datos.kernel
     );
 }
 
-/**
-    * @brief Imprime los datos basicos del sistema.
-    *
-    * Muestra el modelo de cpu, la version de kernel del sistema, el tiempo que
-    * la pc estuvo encendida, y la cantidad de sistemas de archivos soportados por el kernel.
-    * @param datos Estructura de datos con la informacion necesaria para imprimir
-    */
-void printData(struct Datos datos, struct Interval data){
-
-    long ut = datos.uptime;
-
-    printf("Hostname: %s",datos.hostname);
-    printf("Hora y Fecha actual: %s - %s",datos.hora,datos.fecha);
-    printf("CPU:%s",datos.cpu);
-    printf("Version del Kernel de Linux: %s\n",datos.kernel);
-    printf("Uptime: %ldD %ld:%02ld:%02ld \n",ut/day, (ut%day)/hour,(ut%hour)/minute,ut%minute);
-    printf("Memoria disponible/total: %i MB/%i MB\n",data.memDisp/MBYTE,data.memTot/MBYTE);
-    printf("Promedio de carga del sistema: %s %s %s\n",  data.load1Min, data.load5Min, data.load15Min);
-}
 
 void getData(struct Datos *datos){
 
     char buffer[256];
-    char fecha [20];
-    char hora [20];
 
     fp = fopen("/proc/sys/kernel/hostname","r");
     if (fp == NULL){
@@ -147,26 +126,10 @@ void getData(struct Datos *datos){
     fclose(fp);
     strcpy(datos->hostname,buffer);
 
-    fp = fopen("/proc/driver/rtc","r");
-    if (fp == NULL){
-        return;
-    } 
-    
-    if(fgets(buffer, 100, fp) == NULL){
-        printf("Error fgets\n");
-    }
-    strcpy(hora,buffer+11);
-    if(fgets(buffer, 100, fp) == NULL){
-        printf("Error fgets\n");
-    }
-    strcpy(fecha,buffer+11);
-
-    hora[strcspn(hora, "\n")] = 0;
-
-    strcpy(datos->hora,hora);
-    strcpy(datos->fecha,fecha);
-
-    fclose(fp);
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    datos->time = tm;
+    // printf("now: %d-%d-%d %d:%d:%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
     strcpy(path,"/proc/cpuinfo");
     strcpy(before,"model name");
