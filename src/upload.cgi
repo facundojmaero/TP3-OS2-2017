@@ -14,8 +14,9 @@ my $query = new CGI;
 my $filename = $query->param("modulo"); 
 
 if ( !$filename ) { 
-	print $query->header ( );
-	print "There was a problem uploading your photo (try a smaller file)."; 
+	# print $query->header ( );
+	# print "There was a problem uploading your photo (try a smaller file)."; 
+	print "Location: modules.cgi\n\n";
 	exit; 
 }
 
