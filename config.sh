@@ -1,8 +1,8 @@
-#!bin/bash
+#!/bin/bash
 
+sudo cp lighttpd.conf /etc/lighttpd/
 chmod 777 /var/www/html/uploads/
 chmod 777 /var/www/html/files/
-sudo cp lighttpd.conf /etc/lighttpd/
 
 sudo cp -a html/ /var/www/
 sudo /etc/init.d/lighttpd force-reload
