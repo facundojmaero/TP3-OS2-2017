@@ -1,16 +1,21 @@
+/** @file ksamp.c
+ *  @brief Pagina del webserver dedicada a mostrar información del sistema.
+ *
+ * Archivo con la lógica y presentación de la página del servidor
+ * dedicada a mostrar módulos del kernel instalados, subir un módulo propio,
+ * instalarlo y desinstalarlo.
+ *
+ *  @author Facundo Maero
+ */
 #include "../include/ksamp.h"
 
-    /**
-    * @brief Punto de inicio del programa
-    *
-    * Iniciado al ingresar el comando ./ksamp en consola.
-    * Admite parametros extra, con los que realiza funciones avanzadas.
-    * En base de estos parametros llama a las funciones correspondientes.
-    * @see checkInput()
-    * @see printData()
-    * @see getStats()
-    * @see calculateInterval(double values[])
-    */
+/**
+* @brief Función principal de la página de información del sistema.
+*
+* Llama a las subrutinas necesarias para mostrar la página correctamente.
+* Explora el directorio /proc para obtener datos relevantes del sistema
+* y mostrarlos en la página web.
+*/
 int main (int argc, char* argv[]){
     printf("Content-Type: text/html\n\n");
     struct Datos datos;
@@ -19,10 +24,19 @@ int main (int argc, char* argv[]){
     getData(&datos);
     calculateInterval(&interval);
     printPage(datos, interval);
-    // printData(datos, interval);
 	return 0;
 }
 
+/**
+* @brief Imprime el código HTML con la información solicitada.
+*
+* Recibe estructuras con datos sobre el sistema, imprime el código
+* HTML y el contenido de estas estructuras para que el usuario pueda
+* monitorear el webserver.
+*
+* @param datos Contiene modelo de CPU, uptime, hora actual, hostname y versión de kernel.
+* @param data Contiene la RAM total y disponible, y medidas de uso del CPU.
+*/
 void printPage(struct Datos datos, struct Interval data){
     long ut = datos.uptime;
     //Imports
@@ -104,14 +118,21 @@ void printPage(struct Datos datos, struct Interval data){
     "</html>",
     datos.hostname,
     datos.cpu, data.load1Min, data.load5Min, data.load15Min,
-    data.memDisp/MBYTE,data.memTot/MBYTE,
+    data.memTot/MBYTE - data.memDisp/MBYTE,data.memTot/MBYTE,
     datos.time.tm_hour, datos.time.tm_min, datos.time.tm_sec, datos.time.tm_year + 1900, datos.time.tm_mon + 1, datos.time.tm_mday, 
     ut/day, (ut%day)/hour,(ut%hour)/minute,ut%minute,
     datos.kernel
     );
 }
 
-
+/**
+* @brief Obtiene datos necesarios para llenar la estructura Datos.
+*
+* Obtiene el hostname, modelo de CPU, kernel y uptime de /proc 
+* y lo guarda en una estructura de tipo Datos.
+*
+* @param *datos Puntero a estructura para modificarla directamente con los datos obtenidos.
+*/
 void getData(struct Datos *datos){
 
     char buffer[256];
@@ -129,7 +150,6 @@ void getData(struct Datos *datos){
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     datos->time = tm;
-    // printf("now: %d-%d-%d %d:%d:%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
     strcpy(path,"/proc/cpuinfo");
     strcpy(before,"model name");
@@ -150,6 +170,14 @@ void getData(struct Datos *datos){
     datos->uptime = atol(buff);
 }
 
+/**
+* @brief Obtiene datos necesarios para llenar la estructura Interval.
+*
+* Obtiene la memoria RAM total, disponible y el promedio de uso de la CPU
+* en los últimos 1, 5 y 15 minutos.
+*
+* @param *interval Puntero a estructura para modificarla directamente con los datos obtenidos.
+*/
 void calculateInterval(struct Interval *interval){
 
     strcpy(path,"/proc/meminfo");

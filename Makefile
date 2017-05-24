@@ -57,5 +57,5 @@ cppcheck:
 
 clean:
 	@echo Borrando archivos
-	rm -rf *o $(ODIR) $(BDIR) $(LDIR)/*.gch err.txt
+	rm -rf *o $(ODIR) $(BDIR) $(LDIR)/*.gch err.txt html/
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean

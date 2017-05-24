@@ -1,9 +1,8 @@
-/** @file funciones_servidor_cc.h
- *  @brief Libreria principal del servidor
+/** @file funciones_estaciones.h
+ *  @brief Libreria principal de los datos de las estaciones.
  *
- *  Libreria del servidor, con definiciones de mensajes, especificaciones de 
- *  usuarios y contraseñas válidos, constantes, estructuras y prototipos de
- *  funciones.
+ *  Libreria de las estaciones, con definiciones de constantes, 
+ *  estructuras y prototipos de funciones.
  *
  *  @author Facundo Maero
  */
@@ -12,7 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <time.h>
@@ -34,7 +32,7 @@ const char * NOMBRE_FUNCIONES[] = {
 };
 const int NRO_FUNCIONES = (sizeof (NOMBRE_FUNCIONES) / sizeof (const char *));
 
-/*!< Estructura de un sensor, con campo binario esta (disponible o no),
+/* Estructura de un sensor, con campo binario esta (disponible o no),
 y campo nombre. */
 struct sensor_disponible
 {
@@ -42,7 +40,7 @@ struct sensor_disponible
     char nombreSensor[30];
 };
 
-/*!< Estructura principal de datos de las estaciones. Guarda el contenido de 
+/* Estructura principal de datos de las estaciones. Guarda el contenido de 
 una línea del archivo .CSV */
 struct dato_estacion 
 {
@@ -66,7 +64,7 @@ struct dato_estacion
    float   humedadHoja;
 }; 
 
-/*!< Estructura de una estacion, con un arreglo de datos (uno por cada 10 minutos),
+/* Estructura de una estacion, con un arreglo de datos (uno por cada 10 minutos),
 la cantidad de elementos o datos que posee, los sensores instalados y sus nombres, 
 su ID, nombre y ID de su localidad. */
 struct Estacion 
@@ -79,7 +77,7 @@ struct Estacion
     int     idLocalidad;
 };
 
-/*!< Prototipos de funciones */
+/* Prototipos de funciones */
 size_t get_variable_offset(char variable[], int* indiceSensor);
 int promediar(struct Estacion stationArray[], char variable[], float promedios[], int* indiceSensor);
 int check_estacion_existente(struct Estacion estaciones[], int nro);

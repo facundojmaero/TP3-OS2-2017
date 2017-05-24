@@ -1,27 +1,43 @@
+/** @file estaciones.c
+ *  @brief Pagina del webserver dedicada a la información de las estaciones meteorológicas.
+ *
+ * Archivo con la lógica y presentación de la página del servidor
+ * dedicada a mostrar información sobre las estaciones:
+ * promedio, precipitaciones diarias y mensuales, y descarga de la información.
+ *
+ *  @author Facundo Maero
+ */
 #include "../include/funciones_estaciones.h"
 
+/**
+* @brief Función principal de la página estaciones
+*
+* Llama a las subrutinas necesarias para mostrar la página correctamente.
+* Accede al archivo de tipo CSV, guarda la información en una estructura
+* y en función de la solicitud recibida muestra en la página lo solicitado.
+*/
 int 
 main( int argc, char *argv[] ) {
     printf("Content-Type: text/html\n\n");
+    
     struct Estacion stationArray[10];
     FILE* stream;
-
     stream = fopen("../datos_meteorologicos.CSV", "r");
-    // stream = fopen("datos_meteorologicos.CSV", "r");
+    
     if (stream == NULL) {
       perror("Error opening CSV table");
       exit(EXIT_FAILURE);
     }
 
+    // Leo el archivo y guardo la información en stationArray
     leer_archivo(stationArray, stream);
 
-    // char data[50];
+    // Leo la variable de entorno con el query y el numero de estacion pedida.
     char *data = getenv("QUERY_STRING");
     char query[50];
     char query_arg[50];
-    // strcpy(data, "q=descargar&a=30099");
-    // printf("DATA: '%s'\n", data);
 
+    // Parseo lo anterior. Si hay un error termino el script
     if(parseString(data, "a=", "", query_arg) == -1){
         printf("Error parseString\n");
         exit(EXIT_FAILURE);
@@ -32,8 +48,8 @@ main( int argc, char *argv[] ) {
         exit(EXIT_FAILURE);
     }
 
-    // printf("'%s' '%s'\n",query, query_arg );
-
+    // Interpreto el query entre 4 posibles:
+    // promedio, precip mensual, diaria, o descarga
     if(strcmp(query,"promedio") == 0){
         float promedios[NRO_ESTACIONES];
         int indiceSensor;
@@ -44,7 +60,10 @@ main( int argc, char *argv[] ) {
         char titulo[50] = "Promedio - ";
         char unidades[10];
         char sensor[50];
-        traducir_nombre_sensor(query_arg, sensor, unidades);
+        if(traducir_nombre_sensor(query_arg, sensor, unidades) == -1){
+          printf("Error, sensor inválido\n");
+          exit(EXIT_FAILURE);
+        }
         strcat(titulo, sensor);
         print_page_header(titulo);
         print_tabla_promedios(stationArray, promedios, unidades);
@@ -87,6 +106,18 @@ main( int argc, char *argv[] ) {
     return 0; 
 }
 
+/**
+* @brief Mapea el nombre de un sensor en código a su nombre real, y brinda las unidades de medición.
+*
+* Recibe un string con un nombre de sensor en código (ej: temp, humedadHoja) y lo mapea a su
+* nombre real (Temperatura, Humedad de Hoja) para su posterior presentación en la página web.
+* Además devuelve en otra cadena las unidades de medición de ese sensor.
+*
+* @param sensor[] String con el nombre del sensor en código
+* @param traducción[] String con el nombre "traducido".
+* @param unidades[] String con las unidades con las que mide el sensor dado.
+* @return -1 si no se encuentra el sensor dado, 0 en caso exitoso.
+*/
 int
 traducir_nombre_sensor(char sensor[], char traduccion[], char unidades[]){
     if(strcmp(sensor, "temp") == 0){
@@ -164,11 +195,18 @@ traducir_nombre_sensor(char sensor[], char traduccion[], char unidades[]){
         strcpy(unidades, "%%");
         return 0;
     }
-    //Si no es ningun sensor valido
+    //Si no es ningun sensor válido
     strcpy(traduccion, "Sensor inexistente");
     return -1;
 }
 
+/**
+* @brief Imprime el encabezado de la página para ser mostrada en el web browser.
+*
+* Muestra la primer parte de la página web para ser interpretada por el navegador. 
+*
+* @param titulo[] String con el titulo a mostrar.
+*/
 void 
 print_page_header(char titulo[]){
   printf(
@@ -291,6 +329,16 @@ print_page_header(char titulo[]){
       );
 }
 
+/**
+* @brief Imprime el resto de la página, si se solicitó ver promedios de una variable.
+*
+* Muestra una tabla con la información de los promedios de la variable dada, el nombre
+* de la estación correspondiente, su valor y unidades.
+*
+* @param stationArray[] Arreglo con datos de todas las estaciones.
+* @param promedios[] Arreglo con promedios de la variable dada para todas las estaciones.
+* @param unidades[] String con las unidades en las que se miden los promedios (C, mm, hPA,etc)
+*/
 void
 print_tabla_promedios(struct Estacion stationArray[], float promedios[], char unidades[]){
     printf(""
@@ -333,6 +381,19 @@ print_tabla_promedios(struct Estacion stationArray[], float promedios[], char un
     );
 }
 
+/**
+* @brief Imprime el resto de la página, si se solicitó ver precipitaciones diarias.
+*
+* Muestra una tabla con la información de las precipitaciones diarias para la estación dada.
+* Para ello necesita el índice de la estación, un arreglo con los valores de precipitación por día,
+* el arreglo con las estaciones y sus datos, para imprimir el día de cada medición, y un arreglo
+* auxiliar que permite leer de todas las muestras, el contenido de la variable día correctamente.
+*
+* @param stationArray[] Arreglo con datos de todas las estaciones.
+* @param station_index Indice en el arreglo de la estación a mostrar.
+* @param datos[] Arreglo con las precipitaciones por día.
+* @param index_dias[] Arreglo con el indice de cada dia para mostrar correctamente en la página.
+*/
 void
 print_precipitaciones_diarias(struct Estacion stationArray[], int station_index, float datos[], int index_dias[]){
 
@@ -368,6 +429,13 @@ print_precipitaciones_diarias(struct Estacion stationArray[], int station_index,
     );
 }
 
+/**
+* @brief Imprime el resto de la página, si se solicitó ver precipitaciones mensuales.
+*
+* Muestra una tabla con la información de precipitaciones mensuales para la estación solicitada.
+*
+* @param precipitaciones Valor medido en todo el mes.
+*/
 void
 print_precipitaciones_mensual(float precipitaciones){
 
@@ -396,6 +464,13 @@ print_precipitaciones_mensual(float precipitaciones){
     );
 }
 
+/**
+* @brief Imprime el resto de la página, si se solicitó descargar un archivo.
+*
+* Muestra un mensaje con el nombre del archivo generado, y un boton para descargarlo.
+*
+* @param filename[] Nombre del archivo generado para descarga.
+*/
 void
 print_descarga(char filename[]){
 
@@ -403,7 +478,10 @@ print_descarga(char filename[]){
     "<div class='w3-twothird w3-container'>");    
 
     char filename_aux[50];
-    parseString(filename, "../files/", "", filename_aux);
+    if(parseString(filename, "../files/", "", filename_aux) == -1){
+        printf("Error parseString\n");
+        exit(EXIT_FAILURE);
+    }
     
     printf(""
     "<div class='w3-twothird w3-container'>"
@@ -419,6 +497,19 @@ print_descarga(char filename[]){
     );
 }
 
+/**
+* @brief Parsea un string en busca de una cadena de caracteres.
+*
+* Recibido un string y delimitadores, busca en el mismo
+* y guarda la cadena en token.
+* Busca iterativamente hasta encontrar la primer ocurrencia del string buscado
+* y la recorta en base a los delimitadores.
+* @param cadena[] Cadena de caracteres donde se buscará.
+* @param before[] String con el delimitador que se encuentra antes de la cadena deseada
+* @param after[] String con el delimitador que se encuentra despues de la cadena deseada
+* @param token String donde se almacena el resultado.
+* @return 0 si encontro algo, -1 si no encontro nada.
+*/
 int 
 parseString(char cadena[], char before[], char after[], char token[]){
     if(strstr(cadena,before)!=NULL){
@@ -429,6 +520,15 @@ parseString(char cadena[], char before[], char after[], char token[]){
     return -1;
 }
 
+/**
+* @brief Lee un archivo de tipo CSV y guarda la información de las estaciones en una estructura.
+*
+* Lee el archivo separado por comas con información sobre las estaciones, y guarda la información
+* en un arreglo de estructuras adecuadas para ello. 
+*
+* @param stationArray[] Estructura de estaciones a llenar con la información leída.
+* @param stream File descriptor al archivo a leer.
+*/
 void
 leer_archivo(struct Estacion stationArray[10], FILE* stream){
   size_t characters = 0;
@@ -442,15 +542,15 @@ leer_archivo(struct Estacion stationArray[10], FILE* stream){
     int j=0;//numero de estacion
     int idEstacion;
 
-    /*!< Salteo la primer linea y leo el nombre de las columnas */
+    // Salteo la primer linea y leo el nombre de las columnas
     skip_lines(stream,INICIO_ESTACIONES-1);
     characters = getline(&nombreColumnas,&len,stream);
 
-    /*!< Creo 16 sensores temporales (uno por cada columna del archivo) */
+    // Creo 16 sensores temporales (uno por cada columna del archivo)
     struct sensor_disponible sensores_temp[16];
 
-    /*!< Copio el nombre de la columna (el nombre del sensor) en la estruc
-    tura de datos recien declarada */
+    // Copio el nombre de la columna (el nombre del sensor) en la estruc
+    // tura de datos recien declarada
     int cuenta=0;
     token = strtok(nombreColumnas, s);
     while( token != NULL ) {
@@ -461,20 +561,20 @@ leer_archivo(struct Estacion stationArray[10], FILE* stream){
         cuenta++;
     }
 
-    /*!<  Bucle principal de adquisicion de datos.
-    Leo todas las lineas del archivo una por una y las proceso.*/
+    // Bucle principal de adquisicion de datos.
+    // Leo todas las lineas del archivo una por una y las proceso.
     while((characters = getline(&line2,&len,stream)) != -1 ){     
 
-        /*!< Busco el ID de la estacion */
+        // Busco el ID de la estacion
         sscanf(line2,"%d",&idEstacion);
         if (i != 0){
-            /*!< Si no es la primera linea de la estacion, comparo el ID
+            /* Si no es la primera linea de la estacion, comparo el ID
             con el ID del elemento anterior para ver si pase a una nueva
             estacion o si estoy en la misma.
             Esto podria hacerse contando la cantidad de muestras por dia, 
             pero hay un caso en el que una estacion estuvo apagada un tiempo. */
             if(idEstacion != stationArray[j].numero){
-                /*!< Si el ID es diferente, paso a guardar datos de la estacion
+                /* Si el ID es diferente, paso a guardar datos de la estacion
                 siguiente. Guardo el tamaño de la estacion (i). */
                 stationArray[j].cantElem = i;
                 j++;
@@ -483,7 +583,7 @@ leer_archivo(struct Estacion stationArray[10], FILE* stream){
             }
         }
 
-        /*!< Extraigo de la linea leida los datos, guardandolos en una variable
+        /* Extraigo de la linea leida los datos, guardandolos en una variable
         de tipo dato_estacion, diferenciando valores numericos de alfanumericos */
         sscanf(line2, "%*d,%*[^','],%*d,%[^','],%f,%f,%f"
          ",%f,%f,%[^','],%f,%f,%f,%f,%f"
@@ -506,12 +606,12 @@ leer_archivo(struct Estacion stationArray[10], FILE* stream){
          &stationArray[j].dato[i].humedadSuelo3,
          &stationArray[j].dato[i].humedadHoja);
 
-        /*!< De la fecha completa extraigo solo el dia para uso futuro. */
+        /* De la fecha completa extraigo solo el dia para uso futuro. */
         sscanf(stationArray[j].dato[i].fecha,"%s",stationArray[j].dato[i].dia);
         
         if(i==0){
             check_sensores(stationArray, j, line2,sensores_temp);
-            /*!< Si estoy llenando la primer fila de la estacion, guardo
+            /* Si estoy llenando la primer fila de la estacion, guardo
             su ID, nombre y ID de localidad (una vez por cada estacion). */
             sscanf(line2, "%d,%[^','],%d",
                 &stationArray[j].numero,
@@ -520,10 +620,10 @@ leer_archivo(struct Estacion stationArray[10], FILE* stream){
         }
         i++;
 
-    /*!< Guardo la cantidad de elementos de la ultima estacion*/
+    /* Guardo la cantidad de elementos de la ultima estacion*/
         stationArray[j].cantElem = i;
     }
-    /*!< Fin de bucle de adquisicion de datos */
+    /* Fin de bucle de adquisicion de datos */
     stationArray[4].cantElem--;
 }
 
@@ -620,10 +720,12 @@ get_variable_offset(char variable[], int* indiceSensor){
 * de punteros la distancia entre el inicio de la estructura de datos y la variable
 * en cuestión.
 * Si la cadena no corresponde a un sensor devuelve error.
-* Envía los resultados al cliente. Si el sensor no está disponible, lo notifica.
 *
 * @param stationArray[] Arreglo con todos los datos de todas las estaciones.
 * @param variable[] Cadena de caracteres con la variable a promediar.
+* @param promedios[] Arreglo donde se guardan directamente los promedios calculados.
+* @param indiceSensor Indice del sensor a calcular los promedios.
+* @return -1 Si el sensor no existe, 0 en caso exitoso.
 */
 int
 promediar(struct Estacion stationArray[], char variable[], float promedios[], int* indiceSensor){
@@ -669,7 +771,7 @@ promediar(struct Estacion stationArray[], char variable[], float promedios[], in
 *
 * @param estaciones[] Arreglo con todos los datos de todas las estaciones.
 * @param *nro Puntero donde guardar el indice de la estacion en el arreglo.
-* @return 1 si la estacion existe, 0 en caso contrario.
+* @return i El índice de la estación en el arreglo, o -1 en caso de error.
 */
 int
 check_estacion_existente(struct Estacion estaciones[], int nro){
@@ -690,7 +792,9 @@ check_estacion_existente(struct Estacion estaciones[], int nro){
 * sumando el valor de precipitaciones y enviando el promedio de cada dia al cliente.
 *
 * @param estaciones[] Arreglo con todos los datos de todas las estaciones.
-* @param nro ID de la estacion solicitada.
+* @param index ID de la estacion solicitada.
+* @param precipitaciones[] Arreglo con las precipitaciones calculadas por día.
+* @param index_dias[] Arreglo auxiliar con el indice de un elemento por día, para poder averiguar los días de cada medición.
 */
 void 
 diarioPrecipitacion(struct Estacion estaciones[], int index, float precipitaciones[], int index_dias[]){
@@ -702,13 +806,10 @@ diarioPrecipitacion(struct Estacion estaciones[], int index, float precipitacion
 
     float precipAcumulada=0;
     int i, j;
-    // printf("Precipitacion acumulada por dia.\n%d - Estacion %s:\n",
-    //  estaciones[nro].numero, estaciones[nro].nombre);
     for (i = 0, j=0; i < estaciones[nro].cantElem; ++i)
     {
         if(i!=0 && (strcmp(estaciones[nro].dato[i].dia, estaciones[nro].dato[i-1].dia))){
             //termine de recorrer un dia. Sumo todo, muestro y reseteo contador
-            // printf(" %s: %.1f mm, %i\n", estaciones[nro].dato[i-1].dia, precipAcumulada, i-1);
             precipitaciones[j] = precipAcumulada;
             index_dias[j] = i-1;
             j++;
@@ -716,7 +817,6 @@ diarioPrecipitacion(struct Estacion estaciones[], int index, float precipitacion
         }
         precipAcumulada+=estaciones[nro].dato[i].precip;
     }
-    // printf(" %s: %.1f mm, %i\n", estaciones[nro].dato[i-1].dia, precipAcumulada, i-1);
     precipitaciones[j] = precipAcumulada;
     precipitaciones[j+1] = -1; //indica fin de arreglo
     index_dias[j] = i-1;
@@ -728,10 +828,11 @@ diarioPrecipitacion(struct Estacion estaciones[], int index, float precipitacion
 *
 * Dado un ID de estacion, calcula las precipitaciones del mes.
 * Valida el ID de estacion, y si el valor es válido, recorre el arreglo de estaciones
-* sumando el valor de precipitaciones y enviando el promedio del mes al cliente.
+* sumando el valor de precipitaciones y devuelve este valor.
 *
 * @param estaciones[] Arreglo con todos los datos de todas las estaciones.
-* @param nro ID de la estacion solicitada.
+* @param index ID de la estacion solicitada.
+* @return precipAcumulada Las precipitaciones de todo el mes.
 */
 float
 mensual_precip(struct Estacion estaciones[], int index){
@@ -745,8 +846,6 @@ mensual_precip(struct Estacion estaciones[], int index){
     {
         precipAcumulada+=estaciones[nro].dato[i].precip;
     }
-    // printf("Precipitacion acumulada mensual.\n%d - Estacion %s: %.1f mm\n", 
-    //     estaciones[nro].numero,estaciones[nro].nombre,precipAcumulada);
     return precipAcumulada;
 }
 
@@ -806,26 +905,16 @@ check_sensores(struct Estacion stationArray[], int j, char* line2,
 }
 
 /**
-* @brief Envia la estacion solicitada al cliente por conexion no segura (UDP).
+* @brief Guarda la información de la estación solicitada en un archivo de texto.
 *
-* Funcion principal de envio de archivos al cliente.
-* Primero verifica si el ID proporcionado corresponde con una estación existente.
-* Envia al cliente por TCP un flag de inicio de proceso UDP.
-* El cliente deberá crear un servidor UDP. Se espera a que lo haga, leyendo por TCP
-* y esperando el flag servidor UDP listo.
-* Se inicializa el cliente UDP, y se utiliza este medio de comunicacion hasta
-* el final de la subrutina.
-* Se envia el nombre del archivo al cliente, y luego se lee de la estructura y
-* se envian los datos solicitados. Luego de cada envio, se espera un
-* mensaje de confirmacion, para solucionar el problema de que los mensajes pueden
-* no llegar en orden.
-* Una vez finalizado se envia al cliente un flag de fin de transmision, se espera
-* la confirmación, y se cierra el socket UDP.
+* Recibe el índice de la estación deseada, la estructura con todos los datos, 
+* y la información necesaria para generar el archivo. Itera sobre la estructura y va construyendo
+* el archivo para luego ser descargado con otro script.
 *
-* @param numero ID de la estacion solicitada.
+* @param index ID de la estacion solicitada.
 * @param stationArray[] Arreglo con todos los datos de todas las estaciones.
-* @param newsockfd File Descriptor del socket para poder enviar los resultados al cliente.
-* @param stream Descriptor del archivo .CSV para buscar la fecha y el nombre de las columnas.
+* @param stream File descriptor del archivo donde se guardaran los datos para su descarga.
+* @param filename[] String con el nombre del archivo a guardar donde apunta stream.
 */
 void
 descargar_estacion(int index, struct Estacion stationArray[], FILE* stream, char filename[]){
@@ -892,7 +981,6 @@ descargar_estacion(int index, struct Estacion stationArray[], FILE* stream, char
 * Dado un descriptor de archivo y un numero de lineas, las saltea leyéndolas
 * y descartando el resultado.
 *
-* Crea un socket TCP con los argumentos que recibe. Utiliza el puerto 6020.
 * @args *stream Descriptor del archivo donde se quieren saltar lineas.
 * @args lines Cantidad de lineas a saltar.
 */

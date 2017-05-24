@@ -1,24 +1,21 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/unistd.h>
-#include <getopt.h>
-#define MBYTE 1024
-#define PALABRA 50
+/** @file modules.c
+ *  @brief Pagina del webserver dedicada a modulos del Kernel
+ *
+ * Archivo con la lógica y presentación de la página del servidor
+ * dedicada a mostrar módulos del kernel instalados, subir un módulo propio,
+ * instalarlo y desinstalarlo.
+ *
+ *  @author Facundo Maero
+ */
+#include "../include/modules.h"
 
-struct Modulo
-{
-    char name[PALABRA];
-    int size;
-    int instances_loaded;
-    char status[PALABRA];
-};
-
-void getData(struct Modulo modulos[], int lines);
-int parseFile(char before[], char after[], char* buff);
-int count_modules();
-void printPage(struct Modulo modulos[], int cant);
-
+/**
+* @brief Función principal de la página de módulos
+*
+* Llama a las subrutinas necesarias para mostrar la página correctamente.
+* Cuenta el número de módulos instalados, los guarda en una estructura
+* de datos, y los muestra en la página.
+*/
 int main (int argc, char* argv[]){
     printf("Content-Type: text/html\n\n");
     int lines = count_modules();
@@ -30,16 +27,21 @@ int main (int argc, char* argv[]){
     struct Modulo modulos[lines];
     getData(modulos, lines);
 
-    // for (int i = 0; i < lines; ++i)
-    // {
-    //     printf("%s %d %d %s\n", modulos[i].name, modulos[i].size, modulos[i].instances_loaded, modulos[i].status);
-    // }
-
     printPage(modulos, lines);
 
 	return 0;
 }
 
+/**
+* @brief Imprime la página para ser mostrada en el web browser.
+*
+* A partir de una lista de módulos instalados y su cantidad,
+* muestra una simple lista con información básica sobre ellos,
+* y muestra además los elementos necesarios para cargar y borrar
+* un custon driver.
+* @param modulos[] Estructura de datos con la información de los módulos instalados.
+* @param cant Cantidad de módulos instalados en el sistema.
+*/
 void printPage(struct Modulo modulos[], int cant){
     printf(
         "<html>"
@@ -108,8 +110,6 @@ void printPage(struct Modulo modulos[], int cant){
 
     printf(
       "<div class='w3-half w3-container'>"
-      // "<p><a class=\"w3-button w3-border w3-large\" href=\"#\">Subir archivo</a></p>"
-      // "<p><a class=\"w3-button w3-border w3-large\" href=\"#\">Borrar módulo</a></p>"
       "<form action=\"/cgi-bin/upload.cgi\" method=\"post\" enctype=\"multipart/form-data\"> "
       "<p>Archivo a subir: <input type=\"file\" name=\"modulo\" /></p> "
       "<p><input class=\"w3-button w3-border w3-large\" type=\"submit\" name=\"Submit\" value=\"Subir Módulo\" /></p> "
@@ -124,6 +124,14 @@ void printPage(struct Modulo modulos[], int cant){
         );
 }
 
+/**
+* @brief Cuenta el número de módulos instalados en el sistema.
+*
+* Mediante la exploración del archivo /proc/modules,
+* se cuenta la cantidad de drivers instalados.
+*
+* @return La cantidad de módulos del kernel instalados actualmente.
+*/
 int count_modules(){
     char buffer[256];
     int lines = 0;
@@ -138,6 +146,17 @@ int count_modules(){
     return lines;
 }
 
+/**
+* @brief Obtiene de el directorio /proc información sobre los drivers en el sistema.
+*
+* Explorando el archivo /proc/modules se va guardando en la estructura
+* modulos[] la información de cada uno.
+* Puntualmente se guarda su nombre, su tamaño, la cantida de veces que fue montado,
+* y su estado actual.
+*
+* @param modulos[] Estructura de datos donde se guardará la información de los módulos instalados.
+* @param lines Cantidad de módulos instalados en el sistema, usado para iterar sobre el archivo.
+*/
 void getData(struct Modulo modulos[], int lines){
 
     char buffer[256];

@@ -31,7 +31,6 @@ struct Datos {
 	char  cpu[50];
 	char  kernel[50];
 	long  uptime;
-	int   filesystems;
 	struct tm time;
 };
 
