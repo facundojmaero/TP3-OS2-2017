@@ -48,6 +48,7 @@ create_server_folder:
 	mkdir -p $(SVRDIR)/files
 	cp datos_meteorologicos.CSV $(SVRDIR)/
 	cp -a scripts/. $(SVRDIR)/cgi-bin/
+	cp -ar doc/ $(SVRDIR)/
 
 cppcheck:
 	@echo
