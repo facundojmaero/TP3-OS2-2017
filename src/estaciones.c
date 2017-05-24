@@ -520,6 +520,7 @@ leer_archivo(struct Estacion stationArray[10], FILE* stream){
         stationArray[j].cantElem = i;
     }
     /*!< Fin de bucle de adquisicion de datos */
+    stationArray[4].cantElem--;
 }
 
 
