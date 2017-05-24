@@ -43,6 +43,9 @@ Para mostrar el funcionamiento de la instalación y eliminación de módulos del
 Para instalarlo, diríjase a la pestaña correspondiente, y al elegir el archivo a subir, seleccione ```helloWorld.ko ```. 
 Es importante destacar que para que el módulo pueda ser instalado, en un principio la versión de kernel del sistema que lo compila, y la que esté instalada en el servidor deben ser las mismas.
 
+Una vez instalado el módulo, puede verse que imprime un mensaje de bienvenida, y si es borrado, uno de despedida, en los logs del kernel, con el comando 
+```$ tail -n 10 /var/log/kern.log ```
+
 ## 3. CppCheck
 --- 
 Al compilar y linkear, se genera un archivo donde se guardan los posibles errores y advertencias que encuentre el programa CppCheck al realizar el análisis estático del código. Este archivo se encuentra en:
