@@ -14,10 +14,6 @@
 #include <time.h>
 #define MBYTE 1024
 
-// const long minute = 60;
-// const long hour = 60 * 60;
-// const long day = 60 * 60 * 24;
-
 #define minute 60
 #define hour 3600
 #define day 86400
