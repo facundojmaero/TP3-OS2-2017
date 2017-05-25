@@ -452,7 +452,7 @@ print_precipitaciones_mensual(float precipitaciones){
     printf(""
     "<tr>"
     "  <td>Febrero</td>"
-    "  <td>%.1f</td>"
+    "  <td>%.1f mm</td>"
     "</tr>            "
     ,precipitaciones
     );

@@ -4,8 +4,6 @@
 use strict;
 use warnings;
 use CGI;
-# Uncomment the next line only for debugging the script.
-#use CGI::Carp qw/fatalsToBrowser/;
  
 # The next two lines are very important. Do not modify them
 # if you do not understand what they do.
@@ -27,9 +25,6 @@ my $error_log     = '/home/user/downloads/logs/errors.txt';
  
 # Option to log errors: 1 = yes, 0 = no
 my $log           = 0;
- 
-# To prevent hot-linking to your script
-# my $url = 'http://www.yoursite.com';
  
 ####################################
 ## End User Configuration Section ##
@@ -64,12 +59,6 @@ if ($ENV{'CONTENT_TYPE'} =~ m|^multipart/form-data|io ) {
    error('Invalid Content-Type : multipart/form-data.')
 }       
  
-# Check if the request came from your website, if not
-# it indicates remote access or hot linking.
-# if ($ENV{'HTTP_REFERER'} && $ENV{'HTTP_REFERER'} !~ m|^\Q$url|io) {
-#    error('Access forbidden.')
-# }
- 
 ################################
 ## End error checking section ##
 ################################
@@ -101,9 +90,6 @@ download($file) or error('An unknown error has occured.');
 sub download {
    my $file = $_[0] or return(0);
  
-   # Uncomment the next line only for debugging the script 
-   #open(my $DLFILE, '<', "$path_to_files/$file") or die "Can't open file '$path_to_files/$file' : $!";
- 
    # Comment the next line if you uncomment the above line 
    open(my $DLFILE, '<', "$path_to_files/$file") or return(0);
  
@@ -133,9 +119,6 @@ sub error {
 # Log the error to a file
 sub log_error {
    my $error = $_[0];
- 
-   # Uncomment the next line only for debugging the script
-   #open (my $log, ">>", $error_log) or die "Can't open error log: $!";
  
    # Comment the next line if you uncomment the above line
    open (my $log, ">>", $error_log) or return(0);
