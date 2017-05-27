@@ -32,7 +32,7 @@ En el sistema que funcionará como webserver (debe tener instalado una versión 
 
 Luego debe abrirse una terminal en el directorio donde se descargó el repositorio, y ejecutar ```$ make ``` para compilar el proyecto y generar la carpeta **html/**, que contiene todos los archivos que el servidor necesita para funcionar.
 
-Finalmente debe ejecutar el script de configuración con ```$ ./configure.sh ```
+Finalmente debe ejecutar el script de configuración con ```$ sudo ./configure.sh ```
 
 Este script modifica permisos en las carpetas del servidor y mueve el directorio **html/** a su ruta correcta en el sistema. Además modifica el acceso del usuario **www-data** a los comandos **insmod** y **rmmod**, para poder ejecutarlos sin necesidad de la contraseña de superusuario. Finalmente sobreescribe la configuración de Lighttpd por la correcta para ejecutar los scripts CGI.
 
