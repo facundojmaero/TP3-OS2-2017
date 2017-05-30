@@ -1,5 +1,5 @@
 CC = gcc
-FLAGS = -Wall -pedantic -Werror
+FLAGS = -Wall -pedantic -Werror -std=gnu99
 ODIR=obj
 LDIR=include
 SRCDIR=src
@@ -11,12 +11,11 @@ OBJECTS_SERVER=estaciones.o
 obj-m += ksrc/helloWorld.o
 SVRDIR = html
 
-all: make_dirs $(BDIR)/estaciones.cgi $(BDIR)/ksamp.cgi $(BDIR)/modules.cgi helloWorld create_server_folder
+all: make_dirs $(BDIR)/estaciones.cgi $(BDIR)/ksamp.cgi $(BDIR)/modules.cgi create_server_folder
 
 make_dirs:
 	mkdir -p obj
 	mkdir -p cgi-bin
-	mkdir -p build
 
 $(BDIR)/estaciones.cgi: $(PATHOBJECTS_SERVER)
 	$(CC) $(PATHOBJECTS_SERVER) -o $@
@@ -59,4 +58,4 @@ cppcheck:
 clean:
 	@echo Borrando archivos
 	rm -rf *o $(ODIR) $(BDIR) $(LDIR)/*.gch err.txt html/
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+	# make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean

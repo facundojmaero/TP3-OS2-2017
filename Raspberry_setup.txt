@@ -1,0 +1,27 @@
+Raspberry Pi Setup
+
+IP
+https://www.modmypi.com/blog/how-to-give-your-raspberry-pi-a-static-ip-address-update
+
+SSH
+https://www.raspberrypi.org/documentation/remote-access/ssh/
+
+sudo apt update
+sudo apt upgrade
+sudo apt install lighttpd
+
+scp datos repositorio
+
+make
+./config.sh
+
+Driver -> VER
+https://raspberrypi.stackexchange.com/questions/39845/how-compile-a-loadable-kernel-module-without-recompiling-kernel
+
+https://www.raspberrypi.org/forums/viewtopic.php?f=91&t=46911
+https://www.raspberrypi.org/documentation/installation/installing-images/linux.md
+
+copia con dd:
+
+sudo dd bs=4M if=/dev/mmcblk0 | gzip > /home/facundo/image`date +%d%m%y`.gz
+gzip -dc /home/facundo/image300517.gz | sudo dd bs=4M of=/dev/mmcblk0 status=progress
